@@ -26,6 +26,10 @@ LLAMA2_MODELS = {
         "llm_family": "llama2", "llm_cls": LlamaForCausalLM, "hf_hub_path": "meta-llama/Llama-2-7b-hf"
     },
 
+    "llama2-7b-pure-lora": {
+        "llm_family": "llama2", "llm_cls": LlamaForCausalLM, "hf_hub_path": "meta-llama/Llama-2-7b-hf"
+    },
+
     "llama2-13b-pure": {
         "llm_family": "llama2", "llm_cls": LlamaForCausalLM, "hf_hub_path": "meta-llama/Llama-2-13b-hf"
     },
@@ -59,6 +63,7 @@ class LLaMa2LLMBackbone(HFCausalLLMBackbone):
         hf_token: Optional[str] = None,
         inference_mode: bool = False,
         use_flash_attention_2: bool = True,
+        use_lora: bool = False
     ) -> None:
         super().__init__(
             llm_backbone_id,
@@ -66,6 +71,7 @@ class LLaMa2LLMBackbone(HFCausalLLMBackbone):
             hf_token=hf_token,
             inference_mode=inference_mode,
             use_flash_attention_2=use_flash_attention_2,
+            use_lora=use_lora,
             **LLAMA2_MODELS[llm_backbone_id],
         )
 
@@ -78,7 +84,8 @@ class LLaMa2LLMBackbone(HFCausalLLMBackbone):
     def prompt_builder_fn(self) -> Type[PromptBuilder]:
         if self.identifier.startswith("llama2-") and self.identifier.endswith("-pure"):
             return PurePromptBuilder
-
+        if self.identifier.startswith("llama2-") and self.identifier.endswith("-pure-lora"):
+            return PurePromptBuilder
         elif self.identifier.startswith("llama2-") and self.identifier.endswith("-chat"):
             return LLaMa2ChatPromptBuilder
 

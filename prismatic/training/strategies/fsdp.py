@@ -26,7 +26,6 @@ from torch.distributed.fsdp import (
     StateDictType,
 )
 from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
-from torch.optim import AdamW
 from transformers.optimization import get_cosine_schedule_with_warmup
 
 from prismatic.models.vlms import PrismaticVLM
@@ -58,6 +57,7 @@ class FSDPStrategy(TrainingStrategy):
         worker_init_fn: Optional[Callable[[int], None]] = None,
         sharding_strategy: str = "shard-grad-op",
         state_dict_type: StateDictType = StateDictType.FULL_STATE_DICT,
+        optimizer_type: str = "AdamW"
     ) -> None:
         super().__init__(
             vlm=vlm,
@@ -89,6 +89,8 @@ class FSDPStrategy(TrainingStrategy):
         assert state_dict_type == StateDictType.FULL_STATE_DICT, "Sharded state saving is not yet implemented!"
         self.fsdp_state_dict_type = state_dict_type
         self.fsdp_save_policy = FullStateDictConfig(offload_to_cpu=True, rank0_only=True)
+
+        self.optimizer_type = optimizer_type
 
     def save_checkpoint(
         self,
@@ -209,7 +211,8 @@ class FSDPStrategy(TrainingStrategy):
             groups = [{"params": decay, "weight_decay": self.weight_decay}, {"params": no_decay, "weight_decay": 0.0}]
 
             # Create Optimizer & LR Scheduler
-            self.optimizer = AdamW(groups, lr=self.learning_rate)
+            optimizer_cls = torch.optim.__dict__[self.optimizer_type]
+            self.optimizer = optimizer_cls(groups, lr=self.learning_rate)
             self.lr_scheduler = get_cosine_schedule_with_warmup(self.optimizer, num_warmup_steps, num_training_steps)
             for param_group in self.optimizer.param_groups:
                 param_group["lr"] = 0.0

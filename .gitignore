@@ -145,3 +145,8 @@ dmypy.json
 # Caches and Datasets
 cache/
 data/
+
+**/*.ipynb
+*.sh
+sbatch_logs/
+runs/

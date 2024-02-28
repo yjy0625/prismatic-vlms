@@ -54,6 +54,9 @@ LLM_BACKBONES = {
     "llama2-7b-pure": {"cls": LLaMa2LLMBackbone, "kwargs": {}},
     "llama2-13b-pure": {"cls": LLaMa2LLMBackbone, "kwargs": {}},
 
+    # === LLaMa-2 Pure (Non-Chat) Backbones w/ LoRA ===
+    "llama2-7b-pure-lora": {"cls": LLaMa2LLMBackbone, "kwargs": {"use_lora": True, "use_flash_attention_2": False}},
+
     # === LLaMa-2 Chat Backbones ===
     "llama2-7b-chat": {"cls": LLaMa2LLMBackbone, "kwargs": {}},
     "llama2-13b-chat": {"cls": LLaMa2LLMBackbone, "kwargs": {}},

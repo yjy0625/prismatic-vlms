@@ -104,6 +104,7 @@ class HFCausalLLMBackbone(LLMBackbone, ABC):
         hf_token: Optional[str] = None,
         inference_mode: bool = False,
         use_flash_attention_2: bool = False,
+        use_lora: bool = False,
     ) -> None:
         super().__init__(llm_backbone_id)
         self.llm_family = llm_family
@@ -122,7 +123,15 @@ class HFCausalLLMBackbone(LLMBackbone, ABC):
                 do_sample=False,
                 temperature=1.0,
                 top_p=1.0,
+                device_map="balanced"
             )
+            if use_lora:
+                from peft import get_peft_config, get_peft_model, LoraConfig, TaskType
+                peft_config = LoraConfig(
+                    task_type=TaskType.CAUSAL_LM, inference_mode=False, r=4, lora_alpha=32, lora_dropout=0.1
+                )
+                self.llm = get_peft_model(self.llm, peft_config)
+                self.llm.print_trainable_parameters()
 
         # [Contract] `inference_mode` means we're loading from a pretrained checkpoint; no need to load base weights!
         else:
